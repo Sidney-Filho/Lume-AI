@@ -4,10 +4,17 @@ import { cookies } from 'next/headers'
 export async function createClient() {
   const cookieStore = await cookies()
 
-  // Certifique-se de que estes nomes (URL e ANON_KEY) são os mesmos no painel da Vercel
+  // Forçamos o uso dos nomes EXATOS que estão na Vercel
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Supabase environment variables are missing!");
+  }
+
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -19,8 +26,7 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // Este catch é normal em Server Components, pois não podem definir cookies diretamente
-            // A lógica de refresh de sessão geralmente fica no middleware.
+            // Ignorar se chamado de Server Component
           }
         },
       },
