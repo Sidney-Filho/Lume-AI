@@ -4,17 +4,19 @@ import { cookies } from 'next/headers'
 export async function createClient() {
   const cookieStore = await cookies()
 
-  // Forçamos o uso dos nomes EXATOS que estão na Vercel
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // Adicionamos um log preventivo para você ver no painel da Vercel
+  // se a chave está chegando (ela mostrará apenas os primeiros caracteres)
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!url || !anonKey) {
+    console.error("Critical: Environment variables are undefined at runtime");
     throw new Error("Supabase environment variables are missing!");
   }
 
   return createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
+    url,
+    anonKey,
     {
       cookies: {
         getAll() {
@@ -26,7 +28,7 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // Ignorar se chamado de Server Component
+            // Safe to ignore in Server Components
           }
         },
       },
